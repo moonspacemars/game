@@ -1,4 +1,4 @@
-   enum direction {UP,DOWN,LEFT,RIGHT};
+enum direction {UP,DOWN,LEFT,RIGHT};
 
     struct offset{
         int horizontal,vertical;
@@ -25,8 +25,10 @@
     private:
         int x;
         int y;
-        bool enemyNearBy(Color inputColor, int i, int j, Color color[5][6]);
+        bool enemyNearBy(Color inputColor, int i, int j, Color color[5][6],int Max[5][6], int Record[5][6]);
+        bool friendNearBy(Color inputColor, int i, int j, Color color[5][6]);
         bool IsEnemyColor(Color myColor, Color EnemyColor);
+        bool CanAttackEnemy(Color inputColor, int i, int j, Color color[5][6], int Max[5][6], int Record[5][6]);
     };
 
     bool NodeCompareLess(node n1, node n2){
@@ -45,7 +47,7 @@
                 return false;
         }    
 
-    bool Student::enemyNearBy(Color inputColor, int i, int j, Color color[5][6]){
+    bool Student::friendNearBy(Color inputColor, int i, int j, Color color[5][6]){
             offset move[4];
             move[UP].horizontal=0;
             move[UP].vertical=-1;
@@ -61,7 +63,7 @@
                     neighbor_row=i+move[d].vertical;
                     neighbor_col=j+move[d].horizontal;
                     if (neighbor_row>=0 && neighbor_row<5 && neighbor_col>=0 && neighbor_col< 6  ){
-                        if (IsEnemyColor(inputColor, color[neighbor_row][neighbor_col]) ==true)
+                        if (inputColor==color[neighbor_row][neighbor_col])
                             return true;
                     }                    
 
@@ -69,14 +71,75 @@
                 }
                 return false;
 
-        }
+    }
+    
+
+    bool Student::enemyNearBy(Color inputColor, int i, int j, Color color[5][6], int Max[5][6], int Record[5][6]){
+            offset move[4];
+            move[UP].horizontal=0;
+            move[UP].vertical=-1;
+            move[DOWN].horizontal=0;
+            move[DOWN].vertical=1;
+            move[LEFT].horizontal=-1;
+            move[LEFT].vertical=0;
+            move[RIGHT].horizontal=1;
+            move[RIGHT].vertical=0;
+            int  neighbor_row, neighbor_col;  
+            int d=0;
+                while(d<4){ 
+                    neighbor_row=i+move[d].vertical;
+                    neighbor_col=j+move[d].horizontal;
+                    if (neighbor_row>=0 && neighbor_row<5 && neighbor_col>=0 && neighbor_col< 6  ){
+                        if (IsEnemyColor(inputColor, color[neighbor_row][neighbor_col]) ==true &&
+                             Max[neighbor_row][neighbor_col]-Record[neighbor_row][neighbor_col]<= Max[i][j]-Record[i][j])
+                            return true;
+                    }                    
+
+                    d++;
+                }
+                return false;
+
+    }
+
+    bool Student::CanAttackEnemy(Color inputColor, int i, int j, Color color[5][6], int Max[5][6], int Record[5][6]){
+            offset move[4];
+            move[UP].horizontal=0;
+            move[UP].vertical=-1;
+            move[DOWN].horizontal=0;
+            move[DOWN].vertical=1;
+            move[LEFT].horizontal=-1;
+            move[LEFT].vertical=0;
+            move[RIGHT].horizontal=1;
+            move[RIGHT].vertical=0;
+            int  neighbor_row, neighbor_col;  
+            int d=0;
+            bool canAttack=false;
+                while(d<4){ 
+                    neighbor_row=i+move[d].vertical;
+                    neighbor_col=j+move[d].horizontal;
+                    if (neighbor_row>=0 && neighbor_row<5 && neighbor_col>=0 && neighbor_col< 6  ){
+                        if (IsEnemyColor(inputColor, color[neighbor_row][neighbor_col]) ==true ){
+                            if ((Max[neighbor_row][neighbor_col]-Record[neighbor_row][neighbor_col]) >= (Max[i][j]-Record[i][j]))
+                                canAttack=true;
+                            else
+                                return false;
+                        }
+
+                    }                    
+
+                    d++;
+                }
+                if (canAttack)
+                    return true;
+                else
+                    return false;
+
+    }
 
     void Student::makeMove(int Record[5][6], int Max[5][6], Color color[5][6], Color inputColor){
             vector<node> emergencyGroup;
 
             node emNode;
-
-
             
             //defend check
             //int emCount=0;
@@ -84,7 +147,7 @@
             for(int i=0;i<5;i++)
                 for(int j=0;j<6;j++){
                     if (color[i][j]==inputColor){
-                        if (enemyNearBy(inputColor, i,j, color)==true){
+                        if (enemyNearBy(inputColor, i,j, color,Max,Record)==true){
                             x=i;
                             y=j;
                             emNode.row=i;
@@ -128,14 +191,42 @@
                 return;
             } 
 
+
+
+bool findSafe=false;
+//fill to ready fire
+
+            vector<node>().swap(emergencyGroup);
+            findSafe=false;
+            for(int i=0;i<5;i++)
+                for(int j=0;j<6;j++){
+                    if (color[i][j]==inputColor && Max[i][j]-Record[i][j]>1){
+                        if (enemyNearBy(inputColor, i,j, color,Max, Record)==false ){
+                            emNode.row=i;
+                            emNode.col=j;
+                            emNode.emergency=Max[i][j]-Record[i][j];
+                            emergencyGroup.push_back(emNode);
+                            findSafe=true;
+                            //return;
+                        }
+                    }
+                }
+
+            if(findSafe==true){
+                sort(emergencyGroup.begin(), emergencyGroup.end(), NodeCompareLess);
+                x=emergencyGroup[0].row;
+                y=emergencyGroup[0].col;
+                return;
+            }
+
             //find safe
 
             vector<node>().swap(emergencyGroup);
-            bool findSafe=false;
+            findSafe=false;
             for(int i=0;i<5;i++)
                 for(int j=0;j<6;j++){
                     if (color[i][j]==White){
-                        if (enemyNearBy(inputColor, i,j, color)==false){
+                        if (enemyNearBy(inputColor, i,j, color,Max, Record)==false && friendNearBy(inputColor, i,j, color)==false){
                             emNode.row=i;
                             emNode.col=j;
                             emNode.emergency=Max[i][j];
@@ -152,6 +243,57 @@
                 y=emergencyGroup[0].col;
                 return;
             }
+
+            //attack
+
+            vector<node>().swap(emergencyGroup);
+            findSafe=false;
+            for(int i=0;i<5;i++)
+                for(int j=0;j<6;j++){
+                    if (color[i][j]==White){
+                        if (CanAttackEnemy(inputColor, i,j, color,Max, Record)==true ){
+                            emNode.row=i;
+                            emNode.col=j;
+                            emNode.emergency=Max[i][j];
+                            emergencyGroup.push_back(emNode);
+                            findSafe=true;
+                            //return;
+                        }
+                    }
+                }
+
+            if(findSafe==true){
+                sort(emergencyGroup.begin(), emergencyGroup.end(), NodeCompareLess);
+                x=emergencyGroup[0].row;
+                y=emergencyGroup[0].col;
+                return;
+            }
+
+
+ //find safe2
+
+            vector<node>().swap(emergencyGroup);
+            findSafe=false;
+            for(int i=0;i<5;i++)
+                for(int j=0;j<6;j++){
+                    if (color[i][j]==White){
+                        if (enemyNearBy(inputColor, i,j, color,Max, Record)==false ){
+                            emNode.row=i;
+                            emNode.col=j;
+                            emNode.emergency=Max[i][j];
+                            emergencyGroup.push_back(emNode);
+                            findSafe=true;
+                            //return;
+                        }
+                    }
+                }
+
+            if(findSafe==true){
+                sort(emergencyGroup.begin(), emergencyGroup.end(), NodeCompareLess);
+                x=emergencyGroup[0].row;
+                y=emergencyGroup[0].col;
+                return;
+            }            
 
             
 
@@ -184,7 +326,7 @@
                 }  
 
             if (findSafe==true){
-                sort(emergencyGroup.begin(), emergencyGroup.end(), NodeCompareLarge);
+                sort(emergencyGroup.begin(), emergencyGroup.end(), NodeCompareLess);
                 x=emergencyGroup[0].row;
                 y=emergencyGroup[0].col;
                 return;
