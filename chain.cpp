@@ -40,6 +40,7 @@ class node{
         bool CheckExplosion(int (&Record)[5][6], int Max[5][6], Color (&color)[5][6]);
         bool enemyNearBy(Color inputColor, int i, int j, Color color[5][6],int Max[5][6], int Record[5][6]);
         bool friendNearBy(Color inputColor, int i, int j, Color color[5][6]);
+        bool friendNearByAndCritical(Color inputColor, int i, int j, Color color[5][6], int Record[5][6], int Max[5][6]);
         bool IsEnemyColor(Color myColor, Color EnemyColor);
         bool CanAttackEnemy(Color inputColor, int i, int j, Color color[5][6], int Max[5][6], int Record[5][6]);
         void CopyRecordandColor(int sourceRec[5][6], Color sourceCol[5][6], int (&destRec)[5][6], Color (&destCol)[5][6]);
@@ -390,6 +391,32 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
 
     }
 
+    bool Student::friendNearByAndCritical(Color inputColor, int i, int j, Color color[5][6], int Record[5][6], int Max[5][6]){
+            offset move[4];
+            move[UP].horizontal=0;
+            move[UP].vertical=-1;
+            move[DOWN].horizontal=0;
+            move[DOWN].vertical=1;
+            move[LEFT].horizontal=-1;
+            move[LEFT].vertical=0;
+            move[RIGHT].horizontal=1;
+            move[RIGHT].vertical=0;
+            int  neighbor_row, neighbor_col;  
+            int d=0;
+                while(d<4){ 
+                    neighbor_row=i+move[d].vertical;
+                    neighbor_col=j+move[d].horizontal;
+                    if (neighbor_row>=0 && neighbor_row<5 && neighbor_col>=0 && neighbor_col< 6  ){
+                        if (inputColor==color[neighbor_row][neighbor_col] && Record[neighbor_row][neighbor_col]==Max[neighbor_row][neighbor_col]-1)
+                            return true;
+                    }                    
+
+                    d++;
+                }
+                return false;
+
+    }
+
     bool Student::CriticalEnemyNear(Color inputColor, int i, int j, Color color[5][6], int Max[5][6], int Record[5][6]){
             offset move[4];
             move[UP].horizontal=0;
@@ -511,34 +538,28 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
                             else if( j==0 )
                                 score=score+2;  
 
-                            if (friendNearBy(inputColor, i,j, color)==false)
-                                score=score+1; 
-                            if (Record[i][j]== Max[i][j]-1)
-                                score=score+2*Record[i][j];
 
+                            
+
+                            if (Record[i][j]== Max[i][j]-1)
+                                score=score+2;
+
+                            if (friendNearBy(inputColor, i,j, color) ==true)   
+                                score++;
                         }
+
+                        if (friendNearByAndCritical(inputColor, i,j, color, Record, Max)==true  && Record[i][j]== Max[i][j]-1)                 
+                                score=score+2*Record[i][j]; 
+                        
+
+
 
                         
                      }
                 }
 
             
-           /*
-            if (color[0][0]==inputColor){
-                score=score+2;
-            }
-
-            if (color[4][0]==inputColor){
-                score=score+2;
-            }
-
-            if (color[0][5]==inputColor){
-                score=score+2;
-            }   
-
-            if (color[4][5]==inputColor){
-                score=score+2;    
-            } */
+  
 
 
 
