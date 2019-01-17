@@ -37,12 +37,22 @@ class node{
         int evaluate(int Record[5][6], int Max[5][6], Color color[5][6], Color myColor,bool isMax);
         int MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color myColor, int depth, bool isMax,int alpha,int beta);
         void CheckNeighborExplosion(int i, int j, int (&Record)[5][6], int Max[5][6], Color (&color)[5][6]);
-        void CheckExplosion(int (&Record)[5][6], int Max[5][6], Color (&color)[5][6]);
+        bool CheckExplosion(int (&Record)[5][6], int Max[5][6], Color (&color)[5][6]);
         bool enemyNearBy(Color inputColor, int i, int j, Color color[5][6],int Max[5][6], int Record[5][6]);
         bool friendNearBy(Color inputColor, int i, int j, Color color[5][6]);
         bool IsEnemyColor(Color myColor, Color EnemyColor);
         bool CanAttackEnemy(Color inputColor, int i, int j, Color color[5][6], int Max[5][6], int Record[5][6]);
+        void CopyRecordandColor(int sourceRec[5][6], Color sourceCol[5][6], int (&destRec)[5][6], Color (&destCol)[5][6]);
     };
+
+void Student::CopyRecordandColor(int sourceRec[5][6], Color sourceCol[5][6], int (&destRec)[5][6], Color (&destCol)[5][6]){
+    for (int i=0; i<5; i++)
+        for(int j=0; j<6; j++){
+            destRec[i][j]=sourceRec[i][j];
+            destCol[i][j]=sourceCol[i][j];
+        }  
+
+}  
 
 void Student::makeMove(int Record[5][6], int Max[5][6], Color color[5][6], Color inputColor){
     int best=MIN_INIT;
@@ -52,21 +62,27 @@ void Student::makeMove(int Record[5][6], int Max[5][6], Color color[5][6], Color
     int tryValue=0;
     int copyRecord[5][6];
     Color copyColor[5][6];
+    bool explode=false;
+    CopyRecordandColor(Record, color, copyRecord, copyColor);
 
     for (int i=0; i<5; i++)
         for(int j=0; j<6; j++){
             if (color[i][j]==inputColor || color[i][j] ==White){
-                    for (int i=0; i<5; i++)
-                        for(int j=0; j<6; j++){
-                            copyRecord[i][j]=Record[i][j];
-                            copyColor[i][j]=color[i][j];
-                        }
-
+                  
+                    explode=false;
 
                     copyRecord[i][j]=copyRecord[i][j]+1;
                     copyColor[i][j]=inputColor;
-                    CheckExplosion(copyRecord,Max,copyColor);
-                    tryValue = MinMax(copyRecord, Max, copyColor, inputColor, 0, true, MIN_INIT, MAX_INIT);
+                    explode=CheckExplosion(copyRecord,Max,copyColor);
+                    tryValue = MinMax(copyRecord, Max, copyColor, inputColor, 0, false, MIN_INIT, MAX_INIT);
+
+                    if (explode){
+                        CopyRecordandColor(Record, color, copyRecord, copyColor);                        
+                    }
+                    else{
+                        copyRecord[i][j]=Record[i][j];
+                        copyColor[i][j]=color[i][j];
+                    }
 
                     if (tryValue> best){
 
@@ -171,9 +187,9 @@ int Student::evaluate(int Record[5][6], int Max[5][6], Color color[5][6], Color 
     
 
     
-    if(endgame && isMax)
+    if(endgame && !isMax)
         return win;
-    else if (endgame && !isMax)
+    else if (endgame && isMax)
         return lose;
 
     
@@ -203,8 +219,8 @@ int Student::evaluate(int Record[5][6], int Max[5][6], Color color[5][6], Color 
         score= lose;        
 
 
-   if (!isMax)
-        score=score*(-1);
+   /*if (!isMax)
+        score=score*(-1);*/
 
     
     return score;
@@ -225,7 +241,7 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
                 }
             }   
 
-    if (countWhite>19){
+    if (countWhite>9){
         if (depth==2)
             return score;
         
@@ -241,8 +257,12 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
     if (score == lose) 
         return score;  
 
-        if (depth==4)
+        if (depth==3)
             return score;
+
+    CopyRecordandColor(Record, color, copyRecord, copyColor);
+    
+    bool explode=false;
     
 
     //max's move
@@ -253,16 +273,13 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
         for(int i=0;i<5;i++)
             for(int j=0;j<6;j++){
                 if (color[i][j]==myColor || color[i][j] ==White){
-                    for (int i=0; i<5; i++)
-                        for(int j=0; j<6; j++){
-                            copyRecord[i][j]=Record[i][j];
-                            copyColor[i][j]=color[i][j];
-                        }
+                    
+                    explode=false;
 
 
                     copyRecord[i][j]=copyRecord[i][j]+1;
                     copyColor[i][j]=myColor;
-                    CheckExplosion(copyRecord,Max,copyColor);
+                    explode=CheckExplosion(copyRecord,Max,copyColor);
                     best = max(best, MinMax(copyRecord, Max, copyColor, myColor, depth+1, !isMax, alpha,beta));
 
                     alpha= max(best, alpha);
@@ -272,6 +289,14 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
 
                     if (beta <= alpha)
                         break;
+
+                    if (explode){
+                        CopyRecordandColor(Record, color, copyRecord, copyColor);
+                    }
+                    else{
+                        copyRecord[i][j]=Record[i][j];
+                        copyColor[i][j]=color[i][j];
+                    }                    
                 }
             }
         
@@ -286,11 +311,8 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
         for(int i=0;i<5;i++)
             for(int j=0;j<6;j++){
                 if (color[i][j]!=myColor &&  color[i][j] !=Black){
-                    for (int i=0; i<5; i++)
-                        for(int j=0; j<6; j++){
-                            copyRecord[i][j]=Record[i][j];
-                            copyColor[i][j]=color[i][j];
-                        }
+
+                    explode=false;
 
 
                     copyRecord[i][j]=copyRecord[i][j]+1;
@@ -300,7 +322,7 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
                     else
                         opponentColor=Blue;
                     copyColor[i][j]=opponentColor;
-                    CheckExplosion(copyRecord,Max,copyColor);
+                    explode=CheckExplosion(copyRecord,Max,copyColor);
                     best = min(best, MinMax(copyRecord, Max, copyColor, myColor, depth+1, !isMax,alpha,beta));
                     beta = min(beta,best);
 
@@ -309,6 +331,14 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
 
                     if (beta<=alpha)
                         break;
+
+                    if (explode){
+                        CopyRecordandColor(Record, color, copyRecord, copyColor);
+                    }
+                    else{
+                        copyRecord[i][j]=Record[i][j];
+                        copyColor[i][j]=color[i][j];
+                    } 
                 }
             }
         
@@ -651,17 +681,20 @@ offset move[4];
     Record[i][j]=0;
     color[i][j]=Black;
     }
-    void Student::CheckExplosion(int (&Record)[5][6], int Max[5][6], Color (&color)[5][6]){
-
+    bool Student::CheckExplosion(int (&Record)[5][6], int Max[5][6], Color (&color)[5][6]){
+    
+        bool explode=false;
    
-    for (int i=0; i<5 ;i++){
-        for (int j=0; j<6; j++){
-            if (Record[i][j]==Max[i][j] && color[i][j] != Black){
-                Record[i][j]=0;
-                CheckNeighborExplosion(i,j,Record, Max, color);
+        for (int i=0; i<5 ;i++){
+            for (int j=0; j<6; j++){
+                if (Record[i][j]==Max[i][j] && color[i][j] != Black){
+                    explode=true;
+                    Record[i][j]=0;
+                    CheckNeighborExplosion(i,j,Record, Max, color);
+                }
             }
         }
-    }
+        return explode;
 
     }
 
