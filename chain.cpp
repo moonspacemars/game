@@ -508,6 +508,12 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
     }
     int Student::MoveScore(int Record[5][6], int Max[5][6], Color color[5][6], Color inputColor){
         int score=0;
+        Color enemyColor;
+
+        if (inputColor==Blue)
+            enemyColor=Red;
+        else
+            enemyColor=Blue;
             //defend check
             //int emCount=0;
             bool hasEnemy=false;
@@ -515,10 +521,10 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
                 for(int j=0;j<6;j++){
                     if (color[i][j]==inputColor){
                         score++;
-                        if (CriticalEnemyNear(inputColor, i,j, color,Max,Record)==true){
+                        /*if (CriticalEnemyNear(inputColor, i,j, color,Max,Record)==true){
                             score=score-enemySore(inputColor, i,j, color,Max,Record);
                         }
-                        else{
+                        else{*/
                             if (Record[i][j]==Max[i][j]-1)
                                 score=score+2;
                             if(i==0 && j==0 )
@@ -541,21 +547,19 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
 
                             
 
-                            if (Record[i][j]== Max[i][j]-1)
-                                score=score+2;
+                            //if (Record[i][j]== Max[i][j]-1)
+                             //   score=score+2;
 
-                            if (friendNearBy(inputColor, i,j, color) ==true)   
-                                score++;
-                        }
+                        //}
 
-                        if (friendNearByAndCritical(inputColor, i,j, color, Record, Max)==true  && Record[i][j]== Max[i][j]-1)                 
-                                score=score+2*Record[i][j]; 
-                        
-
+                        //if (friendNearByAndCritical(inputColor, i,j, color, Record, Max)==true ) 
+                         //       score=score+2*Record[i][j]; 
 
 
                         
                      }
+                     else if (color[i][j]==enemyColor)
+                        score--;
                 }
 
             
