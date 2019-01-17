@@ -166,10 +166,12 @@ int Student::evaluate(int Record[5][6], int Max[5][6], Color color[5][6], Color 
     else
         enemyColor=Blue;
 
+    calColor=myColor;    
+/*
     if (isMax)
         calColor=myColor;
     else
-        calColor=enemyColor;
+        calColor=enemyColor;*/
 
     score=MoveScore(Record, Max, color,calColor);
 
@@ -284,8 +286,8 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
 
                     alpha= max(best, alpha);
 
-                    if (best==win)
-                        return best;
+                    /*if (best==win)
+                        return best;*/
 
                     if (beta <= alpha)
                         break;
@@ -326,8 +328,8 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
                     best = min(best, MinMax(copyRecord, Max, copyColor, myColor, depth+1, !isMax,alpha,beta));
                     beta = min(beta,best);
 
-                    if (best==lose)
-                        return best;
+                    /*if (best==lose)
+                        return best;*/
 
                     if (beta<=alpha)
                         break;
@@ -489,6 +491,34 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
                         if (CriticalEnemyNear(inputColor, i,j, color,Max,Record)==true){
                             score=score-enemySore(inputColor, i,j, color,Max,Record);
                         }
+                        else{
+                            if (Record[i][j]==Max[i][j]-1)
+                                score=score+2;
+                            if(i==0 && j==0 )
+                                score=score+3;
+                            else if(i==0 && j==5 )
+                                score=score+3;    
+                            else if(i==4 && j==0 )
+                                score=score+3;                                                        
+                            else if(i==4 && j==5 )
+                                score=score+3;     
+                            else if(i==0  )
+                                score=score+2;
+                            else if(j==5 )
+                                score=score+2;    
+                            else if(i==4 )
+                                score=score+2;                                                                
+                            else if( j==0 )
+                                score=score+2;  
+
+                            if (friendNearBy(inputColor, i,j, color)==false)
+                                score=score+1; 
+                            if (Record[i][j]== Max[i][j]-1)
+                                score=score+2*Record[i][j];
+
+                        }
+
+                        
                      }
                 }
 
@@ -515,44 +545,18 @@ int Student::MinMax(int Record[5][6], int Max[5][6], Color color[5][6], Color my
 bool findSafe=false;
 //fill to ready fire
 
-            for(int i=0;i<5;i++)
-                for(int j=0;j<6;j++){
-                    if (color[i][j]==inputColor ){
-                        if (CriticalEnemyNear(inputColor, i,j, color,Max, Record)==false ){
-                            if (Record[i][j]==Max[i][j]-1)
-                                score=score+2;
-                            if(i==0 && j==0 )
-                                score=score+3;
-                            else if(i==0 && j==5 )
-                                score=score+3;    
-                            else if(i==4 && j==0 )
-                                score=score+3;                                                        
-                            else if(i==4 && j==5 )
-                                score=score+3;     
-                            else if(i==0  )
-                                score=score+2;
-                            else if(j==5 )
-                                score=score+2;    
-                            else if(i==4 )
-                                score=score+2;                                                                
-                            else if( j==0 )
-                                score=score+2;
-                                                 
-                            
-                        }
-                    }
-                }
 
-            for(int i=0;i<5;i++)
+           /* for(int i=0;i<5;i++)
                 for(int j=0;j<6;j++){
                     if (color[i][j]==inputColor){
-                        if (Record[i][j]== Max[i][j]-1){
-                            
-                            score=score+2*Record[i][j];
+                        //if (Record[i][j]== Max[i][j]-1) {
+                       // if (enemyNearBy(inputColor, i,j, color,Max, Record)==false && friendNearBy(inputColor, i,j, color)==false){
+                        if (friendNearBy(inputColor, i,j, color)==false){
+                            score=score+2;
                             //return;
                         }
                     }
-                }
+                }*/
 
   
 
